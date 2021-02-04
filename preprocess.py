@@ -34,6 +34,8 @@ import pdb
 random_seed = None
 l1_inverse = 1.0
 
+from config import is_output
+
 if __name__ == "__main__":
     from config import default_random_seed
     random_seed = default_random_seed
@@ -286,13 +288,6 @@ def experiment(y_label, x_labels=None, test_set='test'):
     x_train, y_train = ros.fit_resample(x_train, y_train)
     print ("Resampled dataset:{}".format(Counter(y_train)))
 
-    for reg_name, reg in RegressionMethod.items():
-        break 
-        reg.fit(x_train, y_train)
-        #import pdb
-        #pdb.set_trace()
-        #reg.
-
     for clf_name, clf in classifiers.items():
         clf.fit(x_train, y_train)
         y_pred = clf.predict(x_test)
@@ -300,7 +295,17 @@ def experiment(y_label, x_labels=None, test_set='test'):
         if hasattr(clf, 'predict_proba'):
             y_prob = clf.predict_proba(x_test)[:,1]
         print_metric(clf_name, clf, y_test, y_pred, y_prob)
-
+    
+    if is_output: 
+        
+        assert len(classifiers) == 1, "classifiers can't be None because of output flag is True"
+        output_test_pd = raw_x_test.copy(deep=True)
+        output_test_pd = output_test_pd.join(y_test)
+        output_test_pd = output_test_pd.join(
+            pd.DataFrame({"output_{}".format(y_label):np.reshape(y_pred, [-1]), "output_{}_prob".format(y_label):np.reshape(y_prob, [-1])}, 
+                        index=output_test_pd.index)
+        )
+        output_test_pd.to_csv("./output/output.csv")
 
     if y_label == 'year_5':
         ...

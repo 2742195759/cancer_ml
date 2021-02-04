@@ -27,3 +27,5 @@ interested_classifier = 'Lasso'
 #interested_classifier = None
 
 interested_key = 'AUC'
+
+is_output = True
